@@ -1,0 +1,3 @@
+module.exports=[27572,a=>{"use strict";var b=a.i(7997);function c({children:a}){return(0,b.jsx)("html",{lang:"he",dir:"rtl",children:(0,b.jsx)("body",{children:a})})}a.s(["default",()=>c,"metadata",0,{title:"ניהול שעות עבודה",description:"אפליקציה לניהול שעות עבודה ומעסיקים",manifest:"/manifest.json",icons:{icon:"/favicon.ico",apple:"/icon-192.png"}},"viewport",0,{width:"device-width",initialScale:1,maximumScale:1,themeColor:"#3b82f6"}])}];
+
+//# sourceMappingURL=src_app_layout_tsx_cc8184fa._.js.map

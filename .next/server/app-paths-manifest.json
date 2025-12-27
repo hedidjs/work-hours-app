@@ -1,0 +1,11 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/route": "app/api/auth/route.js",
+  "/api/business/route": "app/api/business/route.js",
+  "/api/employers/[id]/route": "app/api/employers/[id]/route.js",
+  "/api/employers/route": "app/api/employers/route.js",
+  "/api/workdays/[id]/route": "app/api/workdays/[id]/route.js",
+  "/api/workdays/route": "app/api/workdays/route.js",
+  "/page": "app/page.js"
+}

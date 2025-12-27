@@ -1,0 +1,93 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// משתמש (לאימות)
+model User {
+  id        String   @id @default(cuid())
+  password  String
+  createdAt DateTime @default(now())
+}
+
+// פרטי העסק
+model BusinessDetails {
+  id             String   @id @default(cuid())
+  logo           String?  // base64
+  name           String   @default("")
+  businessNumber String   @default("") // מספר עוסק/ח.פ.
+  address        String   @default("")
+  phone          String   @default("")
+  email          String   @default("")
+  bankName       String   @default("")
+  bankBranch     String   @default("")
+  bankAccount    String   @default("")
+  updatedAt      DateTime @updatedAt
+}
+
+// תוספות של מעסיק
+model Bonus {
+  id         String   @id @default(cuid())
+  employerId String
+  name       String   // שם התוספת
+  amount     Float    // מחיר התוספת
+
+  employer Employer @relation(fields: [employerId], references: [id], onDelete: Cascade)
+}
+
+// מעסיקים
+model Employer {
+  id           String   @id @default(cuid())
+  name         String
+  dailyRate    Float    // מחיר יומית (עד 12 שעות)
+  kmRate       Float    // מחיר לקילומטר
+  overtimeRate Float    // מחיר שעה נוספת
+  vatPercent   Float    // אחוז מע"מ
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bonuses  Bonus[]
+  workDays WorkDay[]
+}
+
+// נקודות עבודה (segments) ביום עבודה
+model WorkSegment {
+  id              String   @id @default(cuid())
+  workDayId       String
+  location        String
+  startTime       String   // HH:mm
+  endTime         String   // HH:mm
+  customDailyRate Float?   // מחיר יומית מותאם לנקודה (אופציונלי)
+  selectedBonuses String   @default("[]") // JSON array of bonus IDs
+
+  workDay WorkDay @relation(fields: [workDayId], references: [id], onDelete: Cascade)
+}
+
+// ימי עבודה
+model WorkDay {
+  id              String   @id @default(cuid())
+  employerId      String
+  date            String   // YYYY-MM-DD
+  location        String   // מיקום ראשי
+  startTime       String   // HH:mm
+  endTime         String   // HH:mm
+  kilometers      Float    @default(0)
+  selectedBonuses String   @default("[]") // JSON array of bonus IDs
+  customDailyRate Float?   // מחיר יומית מותאם לאירוע (אופציונלי)
+  calculationMode String   @default("combined") // combined / separate
+  // מחושבים:
+  regularHours    Float    @default(0)
+  overtimeHours   Float    @default(0)
+  totalBeforeVat  Float    @default(0)
+  totalWithVat    Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employer Employer      @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  segments WorkSegment[]
+}
