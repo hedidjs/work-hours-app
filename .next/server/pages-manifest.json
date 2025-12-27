@@ -1,4 +1,12 @@
 {
-  "/404": "pages/404.html",
-  "/500": "pages/500.html"
+  "/AddWorkDay": "pages/AddWorkDay.js",
+  "/BusinessDetails": "pages/BusinessDetails.js",
+  "/Employers": "pages/Employers.js",
+  "/ExportPage": "pages/ExportPage.js",
+  "/HomePage": "pages/HomePage.js",
+  "/LoginPage": "pages/LoginPage.js",
+  "/Statistics": "pages/Statistics.js",
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/_error": "pages/_error.js"
 }

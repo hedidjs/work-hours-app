@@ -68,20 +68,22 @@ export function AddWorkDay({ employers, workDays, onSave, editingId, onCancel }:
           location: seg.location,
           startTime: seg.startTime,
           endTime: seg.endTime,
-          customDailyRate: seg.customDailyRate,
-          useCustomDailyRate: seg.customDailyRate !== undefined,
-          selectedBonuses: seg.selectedBonuses || [],
+          // בודקים null וגם undefined - ומוודאים שהערך חיובי
+          customDailyRate: (seg.customDailyRate != null && seg.customDailyRate > 0) ? seg.customDailyRate : undefined,
+          useCustomDailyRate: seg.customDailyRate != null && seg.customDailyRate > 0,
+          selectedBonuses: Array.isArray(seg.selectedBonuses) ? seg.selectedBonuses : [],
         })))
       } else {
         // תאימות לאחור - יום עבודה ישן עם נקודה אחת
+        const hasCustomRate = existingWorkDay.customDailyRate != null && existingWorkDay.customDailyRate > 0
         setSegments([{
           id: uuidv4(),
           location: existingWorkDay.location,
           startTime: existingWorkDay.startTime,
           endTime: existingWorkDay.endTime,
-          customDailyRate: existingWorkDay.customDailyRate,
-          useCustomDailyRate: existingWorkDay.customDailyRate !== undefined,
-          selectedBonuses: existingWorkDay.selectedBonuses || [],
+          customDailyRate: hasCustomRate ? existingWorkDay.customDailyRate : undefined,
+          useCustomDailyRate: hasCustomRate,
+          selectedBonuses: Array.isArray(existingWorkDay.selectedBonuses) ? existingWorkDay.selectedBonuses : [],
         }])
       }
     }
@@ -439,7 +441,7 @@ export function AddWorkDay({ employers, workDays, onSave, editingId, onCancel }:
             {segments.length > 1 && (
               <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
                 {formData.calculationMode === 'combined'
-                  ? `חישוב ביחד: ${segments.length} נקודות, יומית אחת`
+                  ? `חישוב ביחד: ${segments.length} נקודות`
                   : `חישוב בנפרד: ${segments.length} יומיות`}
               </p>
             )}

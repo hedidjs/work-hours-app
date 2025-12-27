@@ -3,7 +3,7 @@
 
 type AppRoutes = "/"
 type AppRouteHandlerRoutes = "/api/auth" | "/api/business" | "/api/employers" | "/api/employers/[id]" | "/api/workdays" | "/api/workdays/[id]"
-type PageRoutes = never
+type PageRoutes = "/AddWorkDay" | "/BusinessDetails" | "/Employers" | "/ExportPage" | "/HomePage" | "/LoginPage" | "/Statistics"
 type LayoutRoutes = "/"
 type RedirectRoutes = never
 type RewriteRoutes = never
@@ -12,12 +12,19 @@ type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRo
 
 interface ParamMap {
   "/": {}
+  "/AddWorkDay": {}
   "/api/auth": {}
   "/api/business": {}
   "/api/employers": {}
   "/api/employers/[id]": { "id": string; }
   "/api/workdays": {}
   "/api/workdays/[id]": { "id": string; }
+  "/BusinessDetails": {}
+  "/Employers": {}
+  "/ExportPage": {}
+  "/HomePage": {}
+  "/LoginPage": {}
+  "/Statistics": {}
 }
 
 

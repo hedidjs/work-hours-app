@@ -136,15 +136,35 @@ export function calculateMultiSegmentPayment(
     for (const segment of segments) {
       const segmentHours = calculateHours(segment.startTime, segment.endTime)
       if (segmentHours.totalHours > 0) {
-        const rate = segment.customDailyRate !== undefined ? segment.customDailyRate : employer.dailyRate
+        // בודקים null וגם undefined
+        const rate = (segment.customDailyRate != null && segment.customDailyRate > 0)
+          ? segment.customDailyRate
+          : employer.dailyRate
         dailyPay += rate
       }
     }
   } else {
-    // בחישוב ביחד: יומית אחת (עם מחיר מותאם אם יש בנקודה הראשונה)
+    // בחישוב ביחד:
+    // אם יש יומיות מותאמות בנקודות - סוכמים את כולן
+    // אם אין - משתמשים ביומית אחת של המעסיק
     if (hours.regularHours > 0) {
-      const customRate = segments[0]?.customDailyRate
-      dailyPay = customRate !== undefined ? customRate : employer.dailyRate
+      const hasAnyCustomRate = segments.some(seg => seg.customDailyRate != null && seg.customDailyRate > 0)
+
+      if (hasAnyCustomRate) {
+        // יש לפחות נקודה אחת עם יומית מותאמת - סוכמים את כל היומיות
+        for (const segment of segments) {
+          const segmentHours = calculateHours(segment.startTime, segment.endTime)
+          if (segmentHours.totalHours > 0) {
+            const rate = (segment.customDailyRate != null && segment.customDailyRate > 0)
+              ? segment.customDailyRate
+              : employer.dailyRate
+            dailyPay += rate
+          }
+        }
+      } else {
+        // אין יומיות מותאמות - יומית אחת של המעסיק
+        dailyPay = employer.dailyRate
+      }
     }
   }
 
