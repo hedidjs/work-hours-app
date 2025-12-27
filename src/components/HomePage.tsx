@@ -223,7 +223,7 @@ export function HomePage({ workDays, employers, onDelete, onNavigate }: HomePage
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatDate(day.date)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{getEmployerName(day.employerId)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{day.location}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatHours(day.regularHours)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatHours(day.regularHours + day.overtimeHours)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}
                       </td>
