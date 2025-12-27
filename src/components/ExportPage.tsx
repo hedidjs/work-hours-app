@@ -157,7 +157,7 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
                     <th className="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">שעות</th>
                     <th className="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">נוספות</th>
                     <th className="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">ק&quot;מ</th>
-                    <th className="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">סה&quot;כ</th>
+                    <th className="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">סכום</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -165,10 +165,10 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
                     <tr key={day.id}>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{formatDate(day.date)}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{day.location || '-'}</td>
-                      <td className="px-3 py-2 text-gray-900 dark:text-white">{formatHours(day.regularHours)}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white">{formatHours(day.regularHours + day.overtimeHours)}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
-                      <td className="px-3 py-2 text-gray-900 dark:text-white">{day.kilometers || '-'}</td>
-                      <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{formatCurrency(day.totalWithVat)}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white">{day.kilometers > 0 ? day.kilometers : '-'}</td>
+                      <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{formatCurrency(day.totalBeforeVat)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -177,20 +177,24 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
                     <td colSpan={2} className="px-3 py-2 text-gray-900 dark:text-white">סה&quot;כ</td>
                     <td className="px-3 py-2 text-gray-900 dark:text-white">{formatHours(totals.hours)}</td>
                     <td className="px-3 py-2 text-gray-900 dark:text-white">-</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white">{totals.km}</td>
-                    <td className="px-3 py-2 text-gray-900 dark:text-white">{formatCurrency(totals.withVat)}</td>
+                    <td className="px-3 py-2 text-gray-900 dark:text-white">{totals.km > 0 ? totals.km : '-'}</td>
+                    <td className="px-3 py-2 text-gray-900 dark:text-white">{formatCurrency(totals.beforeVat)}</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
 
-            <div className="mt-3 md:mt-4 grid grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm bg-blue-50 dark:bg-blue-900/30 p-3 rounded">
+            <div className="mt-3 md:mt-4 grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm bg-blue-50 dark:bg-blue-900/30 p-3 rounded">
               <div>
                 <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לפני מע&quot;מ:</span>
                 <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(totals.beforeVat)}</span>
               </div>
               <div>
-                <span className="text-gray-600 dark:text-gray-400">סה&quot;כ כולל מע&quot;מ:</span>
+                <span className="text-gray-600 dark:text-gray-400">מע&quot;מ:</span>
+                <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(totals.withVat - totals.beforeVat)}</span>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לתשלום:</span>
                 <span className="font-medium mr-1 md:mr-2 text-green-600 dark:text-green-400">{formatCurrency(totals.withVat)}</span>
               </div>
             </div>

@@ -76,9 +76,11 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatHours(hours: number): string {
-  const h = Math.floor(hours)
-  const m = Math.round((hours - h) * 60)
-  return `${h}:${m.toString().padStart(2, '0')}`
+  // מציג שעות כמספר עשרוני: 10 או 13.5 (לא כפורמט שעה)
+  if (hours === Math.floor(hours)) {
+    return hours.toString()
+  }
+  return hours.toFixed(1).replace(/\.0$/, '')
 }
 
 // חישוב שעות עם תמיכה במספר נקודות עבודה

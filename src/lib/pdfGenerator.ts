@@ -16,6 +16,20 @@ interface PDFData {
   endDate: string
 }
 
+// פונקציה להצגת תוספות של יום עבודה
+function getBonusesText(day: WorkDay, employer?: Employer): string {
+  if (!employer || !employer.bonuses || employer.bonuses.length === 0) return '-'
+
+  const selectedBonuses = day.selectedBonuses || []
+  if (selectedBonuses.length === 0) return '-'
+
+  const bonusNames = employer.bonuses
+    .filter(b => selectedBonuses.includes(b.id))
+    .map(b => b.name)
+
+  return bonusNames.length > 0 ? bonusNames.join(', ') : '-'
+}
+
 export async function generatePDF(data: PDFData): Promise<void> {
   const { workDays, employer, businessDetails, totals, startDate, endDate } = data
 
@@ -48,6 +62,9 @@ export async function generatePDF(data: PDFData): Promise<void> {
     periodText += 'כל התקופה'
   }
 
+  // חישוב מע"מ
+  const vatAmount = totals.withVat - totals.beforeVat
+
   // בניית טבלה
   const tableRows = workDays.map(day => `
     <tr>
@@ -56,8 +73,9 @@ export async function generatePDF(data: PDFData): Promise<void> {
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.startTime} - ${day.endTime}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatHours(day.regularHours + day.overtimeHours)}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.kilometers}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatCurrency(day.totalWithVat)}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.kilometers > 0 ? day.kilometers : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getBonusesText(day, employer)}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatCurrency(day.totalBeforeVat)}</td>
     </tr>
   `).join('')
 
@@ -86,16 +104,17 @@ export async function generatePDF(data: PDFData): Promise<void> {
       ${employer ? `<div style="font-size: 14px; margin-top: 5px;">מעסיק: ${employer.name}</div>` : ''}
     </div>
 
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
       <thead>
         <tr style="background: #3b82f6; color: white;">
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">תאריך</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">מיקום</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">משעה-עד</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">שעות</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">נוספות</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">ק"מ</th>
-          <th style="border: 1px solid #3b82f6; padding: 8px; text-align: center;">סה"כ</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">תאריך</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">מיקום</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">משעה-עד</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">שעות</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">נוספות</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">ק"מ</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">תוספות</th>
+          <th style="border: 1px solid #3b82f6; padding: 6px; text-align: center;">סכום</th>
         </tr>
       </thead>
       <tbody>
@@ -103,20 +122,22 @@ export async function generatePDF(data: PDFData): Promise<void> {
       </tbody>
       <tfoot>
         <tr style="background: #e5e7eb; font-weight: bold;">
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">סה"כ</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"></td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"></td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatHours(totals.hours)}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${totals.km}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatCurrency(totals.withVat)}</td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">סה"כ</td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;"></td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;"></td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${formatHours(totals.hours)}</td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">-</td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${totals.km > 0 ? totals.km : '-'}</td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;"></td>
+          <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${formatCurrency(totals.beforeVat)}</td>
         </tr>
       </tfoot>
     </table>
 
-    <div style="margin-bottom: 20px; text-align: left; font-size: 14px;">
-      <div style="margin-bottom: 8px;">סה"כ לפני מע"מ: ${formatCurrency(totals.beforeVat)}</div>
-      <div style="font-weight: bold; font-size: 16px; color: #059669;">סה"כ לתשלום כולל מע"מ: ${formatCurrency(totals.withVat)}</div>
+    <div style="margin-bottom: 20px; text-align: left; font-size: 14px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #86efac;">
+      <div style="margin-bottom: 8px;">סה"כ לפני מע"מ: <strong>${formatCurrency(totals.beforeVat)}</strong></div>
+      <div style="margin-bottom: 8px;">מע"מ: <strong>${formatCurrency(vatAmount)}</strong></div>
+      <div style="font-weight: bold; font-size: 18px; color: #059669; padding-top: 8px; border-top: 1px solid #86efac;">סה"כ לתשלום: ${formatCurrency(totals.withVat)}</div>
     </div>
 
     ${employer ? `
