@@ -14,6 +14,18 @@ interface PDFData {
   }
   startDate: string
   endDate: string
+  discount?: {
+    type: 'fixed' | 'percent'
+    value: number
+    amount: number
+    reason: string
+  }
+  finalTotals?: {
+    discountAmount: number
+    beforeVat: number
+    vatAmount: number
+    withVat: number
+  }
 }
 
 // פונקציה להצגת תוספות של יום עבודה
@@ -31,7 +43,7 @@ function getBonusesText(day: WorkDay, employer?: Employer): string {
 }
 
 export async function generatePDF(data: PDFData): Promise<void> {
-  const { workDays, employer, businessDetails, totals, startDate, endDate } = data
+  const { workDays, employer, businessDetails, totals, startDate, endDate, discount, finalTotals } = data
 
   // Dynamic import of html2canvas to avoid SSR issues
   const html2canvas = (await import('html2canvas')).default
@@ -136,8 +148,16 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
     <div style="margin-bottom: 20px; text-align: left; font-size: 14px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #86efac;">
       <div style="margin-bottom: 8px;">סה"כ לפני מע"מ: <strong>${formatCurrency(totals.beforeVat)}</strong></div>
-      <div style="margin-bottom: 8px;">מע"מ: <strong>${formatCurrency(vatAmount)}</strong></div>
-      <div style="font-weight: bold; font-size: 18px; color: #059669; padding-top: 8px; border-top: 1px solid #86efac;">סה"כ לתשלום: ${formatCurrency(totals.withVat)}</div>
+      ${discount && discount.amount > 0 ? `
+        <div style="margin-bottom: 8px; color: #ea580c;">
+          הנחה${discount.reason ? ` (${discount.reason})` : ''}:
+          <strong>-${formatCurrency(discount.amount)}</strong>
+          ${discount.type === 'percent' ? `<span style="font-size: 12px; color: #9a3412;"> (${discount.value}%)</span>` : ''}
+        </div>
+        <div style="margin-bottom: 8px;">סה"כ אחרי הנחה: <strong>${formatCurrency(finalTotals?.beforeVat || totals.beforeVat - discount.amount)}</strong></div>
+      ` : ''}
+      <div style="margin-bottom: 8px;">מע"מ: <strong>${formatCurrency(finalTotals?.vatAmount || vatAmount)}</strong></div>
+      <div style="font-weight: bold; font-size: 18px; color: #059669; padding-top: 8px; border-top: 1px solid #86efac;">סה"כ לתשלום: ${formatCurrency(finalTotals?.withVat || totals.withVat)}</div>
     </div>
 
     ${employer ? `

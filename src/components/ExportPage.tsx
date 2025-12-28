@@ -17,6 +17,11 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
   const [endDate, setEndDate] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState(false)
 
+  // הנחה
+  const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed')
+  const [discountValue, setDiscountValue] = useState<string>('')
+  const [discountReason, setDiscountReason] = useState<string>('')
+
   const filteredWorkDays = useMemo(() => {
     // תיקון אוטומטי אם התאריכים הפוכים
     let fromDate = startDate
@@ -52,6 +57,33 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
     return employers.find(e => e.id === selectedEmployer)
   }, [employers, selectedEmployer])
 
+  // חישוב הנחה וסכומים סופיים
+  const discountedTotals = useMemo(() => {
+    const discountNum = parseFloat(discountValue) || 0
+    let discountAmount = 0
+
+    if (discountNum > 0) {
+      if (discountType === 'fixed') {
+        discountAmount = discountNum
+      } else {
+        // אחוזים - מחושב על הסכום לפני מע"מ
+        discountAmount = (totals.beforeVat * discountNum) / 100
+      }
+    }
+
+    const beforeVatAfterDiscount = totals.beforeVat - discountAmount
+    const vatPercent = selectedEmployerData?.vatPercent || 17
+    const vatAmount = beforeVatAfterDiscount * (vatPercent / 100)
+    const withVatAfterDiscount = beforeVatAfterDiscount + vatAmount
+
+    return {
+      discountAmount,
+      beforeVat: beforeVatAfterDiscount,
+      vatAmount,
+      withVat: withVatAfterDiscount,
+    }
+  }, [totals.beforeVat, discountType, discountValue, selectedEmployerData])
+
   const handleExport = async () => {
     if (filteredWorkDays.length === 0) {
       alert('אין נתונים לייצוא')
@@ -75,6 +107,13 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
         totals,
         startDate: fromDate,
         endDate: toDate,
+        discount: discountedTotals.discountAmount > 0 ? {
+          type: discountType,
+          value: parseFloat(discountValue) || 0,
+          amount: discountedTotals.discountAmount,
+          reason: discountReason,
+        } : undefined,
+        finalTotals: discountedTotals,
       })
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -125,6 +164,55 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
             />
           </div>
         </div>
+
+        {/* הנחה */}
+        {filteredWorkDays.length > 0 && (
+          <div className="border border-orange-200 dark:border-orange-800 rounded-lg p-3 md:p-4 mb-4 md:mb-6 bg-orange-50 dark:bg-orange-900/20">
+            <h4 className="font-medium text-orange-800 dark:text-orange-300 mb-3 text-sm md:text-base">הנחה (אופציונלי)</h4>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">סוג הנחה</label>
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value as 'fixed' | 'percent')}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="fixed">סכום קבוע (₪)</option>
+                  <option value="percent">אחוזים (%)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {discountType === 'fixed' ? 'סכום הנחה (₪)' : 'אחוז הנחה (%)'}
+                </label>
+                <input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  placeholder={discountType === 'fixed' ? '0' : '0'}
+                  min="0"
+                  step={discountType === 'fixed' ? '1' : '0.1'}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">סיבת ההנחה</label>
+                <input
+                  type="text"
+                  value={discountReason}
+                  onChange={(e) => setDiscountReason(e.target.value)}
+                  placeholder="לדוגמה: הנחת לקוח קבוע"
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+            {discountedTotals.discountAmount > 0 && (
+              <div className="mt-3 text-sm text-orange-700 dark:text-orange-400">
+                סכום ההנחה: {formatCurrency(discountedTotals.discountAmount)}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* תצוגה מקדימה */}
         {filteredWorkDays.length > 0 ? (
@@ -184,18 +272,26 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
               </table>
             </div>
 
-            <div className="mt-3 md:mt-4 grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm bg-blue-50 dark:bg-blue-900/30 p-3 rounded">
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לפני מע&quot;מ:</span>
-                <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(totals.beforeVat)}</span>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">מע&quot;מ:</span>
-                <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(totals.withVat - totals.beforeVat)}</span>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לתשלום:</span>
-                <span className="font-medium mr-1 md:mr-2 text-green-600 dark:text-green-400">{formatCurrency(totals.withVat)}</span>
+            <div className="mt-3 md:mt-4 text-xs md:text-sm bg-blue-50 dark:bg-blue-900/30 p-3 rounded">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לפני מע&quot;מ:</span>
+                  <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(totals.beforeVat)}</span>
+                </div>
+                {discountedTotals.discountAmount > 0 && (
+                  <div>
+                    <span className="text-orange-600 dark:text-orange-400">הנחה:</span>
+                    <span className="font-medium mr-1 md:mr-2 text-orange-600 dark:text-orange-400">-{formatCurrency(discountedTotals.discountAmount)}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">מע&quot;מ:</span>
+                  <span className="font-medium mr-1 md:mr-2 text-gray-900 dark:text-white">{formatCurrency(discountedTotals.vatAmount)}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">סה&quot;כ לתשלום:</span>
+                  <span className="font-medium mr-1 md:mr-2 text-green-600 dark:text-green-400">{formatCurrency(discountedTotals.withVat)}</span>
+                </div>
               </div>
             </div>
           </div>
