@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import type { WorkDay, Employer, BusinessDetails } from './api'
-import { formatDate, formatCurrency, formatHours, getWorkDayLocations } from './calculations'
+import { formatDate, formatCurrency, formatHours, getWorkDayLocations, getWorkDayTimeRanges } from './calculations'
 
 interface PDFData {
   workDays: WorkDay[]
@@ -82,7 +82,7 @@ export async function generatePDF(data: PDFData): Promise<void> {
     <tr>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatDate(day.date)}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getWorkDayLocations(day) || '-'}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.startTime} - ${day.endTime}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getWorkDayTimeRanges(day)}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatHours(day.regularHours + day.overtimeHours)}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.kilometers > 0 ? day.kilometers : '-'}</td>

@@ -83,6 +83,20 @@ export function formatHours(hours: number): string {
   return hours.toFixed(1).replace(/\.0$/, '')
 }
 
+// מחזיר את כל טווחי השעות מיום עבודה (מכל הנקודות)
+export function getWorkDayTimeRanges(day: { startTime: string; endTime: string; segments?: { startTime: string; endTime: string }[] }): string {
+  // אם יש נקודות עבודה, נלקח את השעות מהן
+  if (day.segments && day.segments.length > 0) {
+    const timeRanges = day.segments
+      .map(seg => `${seg.startTime} - ${seg.endTime}`)
+
+    return timeRanges.join(', ')
+  }
+
+  // אחרת, נחזיר את השעות הראשיות
+  return `${day.startTime} - ${day.endTime}`
+}
+
 // מחזיר את כל המיקומים מיום עבודה (מכל הנקודות)
 export function getWorkDayLocations(day: { location: string; segments?: { location: string }[] }): string {
   // אם יש נקודות עבודה, נלקח את המיקומים מהן
