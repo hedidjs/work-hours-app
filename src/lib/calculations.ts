@@ -83,6 +83,26 @@ export function formatHours(hours: number): string {
   return hours.toFixed(1).replace(/\.0$/, '')
 }
 
+// מחזיר את כל המיקומים מיום עבודה (מכל הנקודות)
+export function getWorkDayLocations(day: { location: string; segments?: { location: string }[] }): string {
+  // אם יש נקודות עבודה, נלקח את המיקומים מהן
+  if (day.segments && day.segments.length > 0) {
+    const locations = day.segments
+      .map(seg => seg.location)
+      .filter(loc => loc && loc.trim() !== '')
+
+    // הסר כפילויות
+    const uniqueLocations = [...new Set(locations)]
+
+    if (uniqueLocations.length > 0) {
+      return uniqueLocations.join(', ')
+    }
+  }
+
+  // אחרת, נחזיר את המיקום הראשי
+  return day.location || ''
+}
+
 // חישוב שעות עם תמיכה במספר נקודות עבודה
 export interface SegmentForCalc {
   startTime: string

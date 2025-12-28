@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import type { WorkDay, Employer, BusinessDetails } from '@/lib/api'
-import { formatDate, formatCurrency, formatHours } from '@/lib/calculations'
+import { formatDate, formatCurrency, formatHours, getWorkDayLocations } from '@/lib/calculations'
 import { generatePDF } from '@/lib/pdfGenerator'
 
 interface ExportPageProps {
@@ -137,7 +137,7 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
                 <div key={day.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 flex justify-between items-center">
                   <div>
                     <div className="font-medium text-sm text-gray-900 dark:text-white">{formatDate(day.date)}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{day.location || '-'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{getWorkDayLocations(day) || '-'}</div>
                   </div>
                   <div className="text-left">
                     <div className="font-medium text-sm text-green-600 dark:text-green-400">{formatCurrency(day.totalWithVat)}</div>
@@ -164,7 +164,7 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
                   {filteredWorkDays.map(day => (
                     <tr key={day.id}>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{formatDate(day.date)}</td>
-                      <td className="px-3 py-2 text-gray-900 dark:text-white">{day.location || '-'}</td>
+                      <td className="px-3 py-2 text-gray-900 dark:text-white">{getWorkDayLocations(day) || '-'}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{formatHours(day.regularHours + day.overtimeHours)}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
                       <td className="px-3 py-2 text-gray-900 dark:text-white">{day.kilometers > 0 ? day.kilometers : '-'}</td>

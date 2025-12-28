@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import type { WorkDay, Employer } from '@/lib/api'
-import { formatDate, formatCurrency, formatHours } from '@/lib/calculations'
+import { formatDate, formatCurrency, formatHours, getWorkDayLocations } from '@/lib/calculations'
 
 interface HomePageProps {
   workDays: WorkDay[]
@@ -168,8 +168,8 @@ export function HomePage({ workDays, employers, onDelete, onNavigate }: HomePage
                   </div>
                 </div>
 
-                {day.location && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">📍 {day.location}</div>
+                {getWorkDayLocations(day) && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">📍 {getWorkDayLocations(day)}</div>
                 )}
 
                 <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -222,7 +222,7 @@ export function HomePage({ workDays, employers, onDelete, onNavigate }: HomePage
                     <tr key={day.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatDate(day.date)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{getEmployerName(day.employerId)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{day.location}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{getWorkDayLocations(day)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatHours(day.regularHours + day.overtimeHours)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}

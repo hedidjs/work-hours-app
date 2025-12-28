@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import type { WorkDay, Employer, BusinessDetails } from './api'
-import { formatDate, formatCurrency, formatHours } from './calculations'
+import { formatDate, formatCurrency, formatHours, getWorkDayLocations } from './calculations'
 
 interface PDFData {
   workDays: WorkDay[]
@@ -69,7 +69,7 @@ export async function generatePDF(data: PDFData): Promise<void> {
   const tableRows = workDays.map(day => `
     <tr>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatDate(day.date)}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.location || '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getWorkDayLocations(day) || '-'}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.startTime} - ${day.endTime}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatHours(day.regularHours + day.overtimeHours)}</td>
       <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
@@ -144,7 +144,7 @@ export async function generatePDF(data: PDFData): Promise<void> {
       <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
         <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px;">תעריפים:</div>
         <div style="font-size: 13px; color: #374151; display: flex; gap: 30px; flex-wrap: wrap;">
-          <div>יומית (עד 12 שעות): ${formatCurrency(employer.dailyRate)}</div>
+          <div>יומית (עד ${employer.dailyHours || 12} שעות): ${formatCurrency(employer.dailyRate)}</div>
           <div>שעה נוספת: ${formatCurrency(employer.overtimeRate)}</div>
           <div>קילומטר: ${formatCurrency(employer.kmRate)}</div>
           <div>מע"מ: ${employer.vatPercent}%</div>
