@@ -384,15 +384,25 @@ export async function generatePDF(data: PDFData): Promise<void> {
     }
   }
 
-  // שמירת הקובץ
-  const fileName = employer
-    ? `דוח_שעות_${employer.name}_${new Date().toISOString().split('T')[0]}.pdf`
-    : `דוח_שעות_${new Date().toISOString().split('T')[0]}.pdf`
+  // שמירת הקובץ - שם פשוט באנגלית למניעת בעיות
+  const dateStr = new Date().toISOString().split('T')[0]
+  const fileName = `work_report_${dateStr}.pdf`
 
   console.log('PDF: Saving file:', fileName)
 
-  // הורדה ישירה
-  pdf.save(fileName)
+  // הורדה באמצעות blob וקישור
+  const blob = pdf.output('blob')
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // ניקוי ה-URL אחרי הורדה
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 
   console.log('PDF: Generation completed')
 }
