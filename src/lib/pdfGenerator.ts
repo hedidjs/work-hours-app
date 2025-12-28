@@ -72,9 +72,9 @@ function createHeaderHTML(businessDetails: BusinessDetails, startDate: string, e
 
   if (isFirstPage) {
     return `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; direction: ltr;">
         ${businessDetails.logo ? `<img src="${businessDetails.logo}" style="max-width: 120px; max-height: 80px;" />` : '<div></div>'}
-        <div style="text-align: right;">
+        <div style="text-align: right; direction: rtl;">
           <h1 style="margin: 0; font-size: 24px; color: #1a202c;">דוח שעות עבודה</h1>
           <div style="margin-top: 10px; font-size: 12px; color: #4a5568;">
             ${businessDetails.name ? `<div style="font-weight: bold; font-size: 14px;">${businessDetails.name}</div>` : ''}
@@ -92,9 +92,9 @@ function createHeaderHTML(businessDetails: BusinessDetails, startDate: string, e
     `
   } else {
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0; direction: ltr;">
         ${businessDetails.logo ? `<img src="${businessDetails.logo}" style="max-width: 80px; max-height: 50px;" />` : '<div></div>'}
-        <div style="text-align: right;">
+        <div style="text-align: right; direction: rtl;">
           <div style="font-size: 16px; font-weight: bold; color: #1a202c;">דוח שעות עבודה - המשך</div>
           ${employer ? `<div style="font-size: 11px; color: #718096;">${employer.name} | ${periodText}</div>` : ''}
         </div>
