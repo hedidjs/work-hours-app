@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import type { WorkDay, Employer, BusinessDetails } from './api'
-import { formatDate, formatCurrency, formatHours, getWorkDayLocations, getWorkDayTimeRanges } from './calculations'
+import { formatDate, formatCurrency, formatHours } from './calculations'
 
 interface PDFData {
   workDays: WorkDay[]
@@ -29,6 +29,30 @@ interface PDFData {
   }
 }
 
+// פונקציה להצגת שעות עם שורות נפרדות ל-PDF
+function getTimeRangesForPDF(day: WorkDay): string {
+  if (day.segments && day.segments.length > 0) {
+    return day.segments
+      .map(seg => `${seg.startTime} - ${seg.endTime}`)
+      .join('<br/>')
+  }
+  return `${day.startTime} - ${day.endTime}`
+}
+
+// פונקציה להצגת מיקומים עם שורות נפרדות ל-PDF
+function getLocationsForPDF(day: WorkDay): string {
+  if (day.segments && day.segments.length > 0) {
+    const locations = day.segments
+      .map(seg => seg.location)
+      .filter(loc => loc && loc.trim() !== '')
+    const uniqueLocations = [...new Set(locations)]
+    if (uniqueLocations.length > 0) {
+      return uniqueLocations.join('<br/>')
+    }
+  }
+  return day.location || '-'
+}
+
 // פונקציה להצגת תוספות של יום עבודה
 function getBonusesText(day: WorkDay, employer?: Employer): string {
   if (!employer || !employer.bonuses || employer.bonuses.length === 0) return '-'
@@ -54,7 +78,7 @@ function getBonusesText(day: WorkDay, employer?: Employer): string {
 
   // הסרת כפילויות
   const uniqueBonusNames = [...new Set(bonusNames)]
-  return uniqueBonusNames.length > 0 ? uniqueBonusNames.join(', ') : '-'
+  return uniqueBonusNames.length > 0 ? uniqueBonusNames.join('<br/>') : '-'
 }
 
 // יצירת HTML לכותרת
@@ -124,14 +148,14 @@ function createDataRowHTML(day: WorkDay, employer?: Employer, isAlternate = fals
   const bgColor = isAlternate ? '#f9fafb' : '#ffffff'
   return `
     <tr style="background: ${bgColor};">
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb;">${formatDate(day.date)}</td>
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${getWorkDayLocations(day) || '-'}</td>
-      <td style="padding: 6px; text-align: center; font-size: 9px; border-bottom: 1px solid #e5e7eb;">${getWorkDayTimeRanges(day)}</td>
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb;">${formatHours(day.regularHours + day.overtimeHours)}</td>
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb;">${day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb;">${day.kilometers > 0 ? day.kilometers : '-'}</td>
-      <td style="padding: 6px; text-align: center; font-size: 9px; border-bottom: 1px solid #e5e7eb; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${getBonusesText(day, employer)}</td>
-      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; font-weight: 500;">${formatCurrency(day.totalBeforeVat)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${formatDate(day.date)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${getLocationsForPDF(day)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 9px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${getTimeRangesForPDF(day)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${formatHours(day.regularHours + day.overtimeHours)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${day.overtimeHours > 0 ? formatHours(day.overtimeHours) : '-'}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${day.kilometers > 0 ? day.kilometers : '-'}</td>
+      <td style="padding: 6px; text-align: center; font-size: 9px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${getBonusesText(day, employer)}</td>
+      <td style="padding: 6px; text-align: center; font-size: 10px; border-bottom: 1px solid #e5e7eb; font-weight: 500; vertical-align: top;">${formatCurrency(day.totalBeforeVat)}</td>
     </tr>
   `
 }
