@@ -384,25 +384,41 @@ export async function generatePDF(data: PDFData): Promise<void> {
     }
   }
 
-  // שמירת הקובץ - שם פשוט באנגלית למניעת בעיות
+  // שמירת הקובץ
   const dateStr = new Date().toISOString().split('T')[0]
   const fileName = `work_report_${dateStr}.pdf`
 
   console.log('PDF: Saving file:', fileName)
 
-  // הורדה באמצעות blob וקישור
-  const blob = pdf.output('blob')
-  const url = URL.createObjectURL(blob)
+  // פתיחה בטאב חדש כ-data URL (עובד טוב יותר בדפדפנים מודרניים)
+  const pdfDataUri = pdf.output('datauristring')
 
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-
-  // ניקוי ה-URL אחרי הורדה
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  // יצירת חלון חדש עם ה-PDF
+  const pdfWindow = window.open('', '_blank')
+  if (pdfWindow) {
+    pdfWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${fileName}</title>
+          <style>
+            body { margin: 0; padding: 0; }
+            iframe { width: 100%; height: 100vh; border: none; }
+          </style>
+        </head>
+        <body>
+          <iframe src="${pdfDataUri}"></iframe>
+        </body>
+      </html>
+    `)
+    pdfWindow.document.close()
+  } else {
+    // אם נחסם פופאפ, ננסה הורדה ישירה
+    const link = document.createElement('a')
+    link.href = pdfDataUri
+    link.download = fileName
+    link.click()
+  }
 
   console.log('PDF: Generation completed')
 }
