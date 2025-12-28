@@ -99,6 +99,7 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
     }
 
     setIsGenerating(true)
+    console.log('Starting PDF generation...')
     try {
       await generatePDF({
         workDays: filteredWorkDays,
@@ -115,9 +116,10 @@ export function ExportPage({ workDays, employers, businessDetails }: ExportPageP
         } : undefined,
         finalTotals: discountedTotals,
       })
+      console.log('PDF generation completed successfully')
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('שגיאה ביצירת ה-PDF')
+      alert('שגיאה ביצירת ה-PDF: ' + (error instanceof Error ? error.message : String(error)))
     }
     setIsGenerating(false)
   }

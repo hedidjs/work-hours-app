@@ -193,10 +193,12 @@ export async function generatePDF(data: PDFData): Promise<void> {
   `
 
   document.body.appendChild(container)
+  console.log('PDF: Container added to document')
 
   try {
     // המתנה לטעינת התמונות
     await new Promise(resolve => setTimeout(resolve, 200))
+    console.log('PDF: Starting html2canvas')
 
     // יצירת canvas מהHTML
     const canvas = await html2canvas(container, {
@@ -206,6 +208,7 @@ export async function generatePDF(data: PDFData): Promise<void> {
       backgroundColor: '#ffffff',
       logging: false,
     })
+    console.log('PDF: Canvas created', canvas.width, 'x', canvas.height)
 
     // יצירת PDF
     const pdf = new jsPDF({
@@ -269,8 +272,31 @@ export async function generatePDF(data: PDFData): Promise<void> {
       ? `דוח_שעות_${employer.name}_${new Date().toISOString().split('T')[0]}.pdf`
       : `דוח_שעות_${new Date().toISOString().split('T')[0]}.pdf`
 
-    pdf.save(fileName)
+    console.log('PDF: Saving file:', fileName)
+
+    // נסיון להוריד את הקובץ
+    try {
+      pdf.save(fileName)
+      console.log('PDF: Save completed')
+    } catch (saveError) {
+      console.error('PDF: Save failed, trying blob method', saveError)
+      // אם השמירה הרגילה נכשלה, ננסה בשיטה אחרת
+      const blob = pdf.output('blob')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      console.log('PDF: Blob method completed')
+    }
+  } catch (error) {
+    console.error('PDF: Error during generation:', error)
+    throw error
   } finally {
     document.body.removeChild(container)
+    console.log('PDF: Cleanup done')
   }
 }
