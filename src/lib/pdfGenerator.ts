@@ -274,24 +274,28 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
     console.log('PDF: Saving file:', fileName)
 
-    // נסיון להוריד את הקובץ
-    try {
-      pdf.save(fileName)
-      console.log('PDF: Save completed')
-    } catch (saveError) {
-      console.error('PDF: Save failed, trying blob method', saveError)
-      // אם השמירה הרגילה נכשלה, ננסה בשיטה אחרת
-      const blob = pdf.output('blob')
-      const url = URL.createObjectURL(blob)
+    // יצירת blob ופתיחה בחלון חדש (עובד טוב יותר בדפדפנים שונים)
+    const blob = pdf.output('blob')
+    const url = URL.createObjectURL(blob)
+
+    // פתיחת ה-PDF בחלון/טאב חדש
+    const newWindow = window.open(url, '_blank')
+
+    if (!newWindow) {
+      // אם הדפדפן חסם פתיחת חלון, ננסה להוריד ישירות
+      console.log('PDF: Window blocked, trying direct download')
       const link = document.createElement('a')
       link.href = url
       link.download = fileName
+      link.style.display = 'none'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      console.log('PDF: Blob method completed')
     }
+
+    // שחרור ה-URL אחרי זמן קצר
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+    console.log('PDF: Save completed')
   } catch (error) {
     console.error('PDF: Error during generation:', error)
     throw error
