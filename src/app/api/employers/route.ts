@@ -16,6 +16,7 @@ export async function GET() {
       id: emp.id,
       name: emp.name,
       dailyRate: emp.dailyRate,
+      dailyHours: emp.dailyHours || 12,
       kmRate: emp.kmRate,
       overtimeRate: emp.overtimeRate,
       vatPercent: emp.vatPercent,
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
       data: {
         name: data.name,
         dailyRate: data.dailyRate || 0,
+        dailyHours: data.dailyHours || 12,
         kmRate: data.kmRate || 0,
         overtimeRate: data.overtimeRate || 0,
         vatPercent: data.vatPercent || 17,
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
       id: employer.id,
       name: employer.name,
       dailyRate: employer.dailyRate,
+      dailyHours: employer.dailyHours || 12,
       kmRate: employer.kmRate,
       overtimeRate: employer.overtimeRate,
       vatPercent: employer.vatPercent,

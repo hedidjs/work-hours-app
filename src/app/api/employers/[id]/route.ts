@@ -22,6 +22,7 @@ export async function GET(
       id: employer.id,
       name: employer.name,
       dailyRate: employer.dailyRate,
+      dailyHours: employer.dailyHours || 12,
       kmRate: employer.kmRate,
       overtimeRate: employer.overtimeRate,
       vatPercent: employer.vatPercent,
@@ -57,6 +58,7 @@ export async function PUT(
       data: {
         name: data.name,
         dailyRate: data.dailyRate || 0,
+        dailyHours: data.dailyHours || 12,
         kmRate: data.kmRate || 0,
         overtimeRate: data.overtimeRate || 0,
         vatPercent: data.vatPercent || 17,
@@ -74,6 +76,7 @@ export async function PUT(
       id: employer.id,
       name: employer.name,
       dailyRate: employer.dailyRate,
+      dailyHours: employer.dailyHours || 12,
       kmRate: employer.kmRate,
       overtimeRate: employer.overtimeRate,
       vatPercent: employer.vatPercent,

@@ -44,7 +44,8 @@ model Bonus {
 model Employer {
   id           String   @id @default(cuid())
   name         String
-  dailyRate    Float    // מחיר יומית (עד 12 שעות)
+  dailyRate    Float    // מחיר יומית
+  dailyHours   Float    @default(12) // כמה שעות ביומית (ברירת מחדל 12)
   kmRate       Float    // מחיר לקילומטר
   overtimeRate Float    // מחיר שעה נוספת
   vatPercent   Float    // אחוז מע"מ

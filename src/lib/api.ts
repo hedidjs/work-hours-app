@@ -10,6 +10,7 @@ export interface Employer {
   id: string;
   name: string;
   dailyRate: number;
+  dailyHours: number; // כמה שעות ביומית (ברירת מחדל 12)
   kmRate: number;
   overtimeRate: number;
   vatPercent: number;

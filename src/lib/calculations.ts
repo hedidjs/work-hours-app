@@ -1,6 +1,6 @@
 import type { Employer } from './api'
 
-export function calculateHours(startTime: string, endTime: string): { totalHours: number; regularHours: number; overtimeHours: number } {
+export function calculateHours(startTime: string, endTime: string, dailyHours: number = 12): { totalHours: number; regularHours: number; overtimeHours: number } {
   const [startH, startM] = startTime.split(':').map(Number)
   const [endH, endM] = endTime.split(':').map(Number)
 
@@ -15,8 +15,8 @@ export function calculateHours(startTime: string, endTime: string): { totalHours
   const totalMinutes = endMinutes - startMinutes
   const totalHours = totalMinutes / 60
 
-  const regularHours = Math.min(totalHours, 12)
-  const overtimeHours = Math.max(0, totalHours - 12)
+  const regularHours = Math.min(totalHours, dailyHours)
+  const overtimeHours = Math.max(0, totalHours - dailyHours)
 
   return {
     totalHours: Math.round(totalHours * 100) / 100,
@@ -93,7 +93,8 @@ export interface SegmentForCalc {
 
 export function calculateMultiSegmentHours(
   segments: SegmentForCalc[],
-  _mode: 'combined' | 'separate'
+  _mode: 'combined' | 'separate',
+  dailyHours: number = 12
 ): { totalHours: number; regularHours: number; overtimeHours: number } {
   if (segments.length === 0) {
     return { totalHours: 0, regularHours: 0, overtimeHours: 0 }
@@ -104,12 +105,12 @@ export function calculateMultiSegmentHours(
   let totalHours = 0
 
   for (const segment of segments) {
-    const hours = calculateHours(segment.startTime, segment.endTime)
+    const hours = calculateHours(segment.startTime, segment.endTime, dailyHours)
     totalHours += hours.totalHours
   }
 
-  const regularHours = Math.min(totalHours, 12)
-  const overtimeHours = Math.max(0, totalHours - 12)
+  const regularHours = Math.min(totalHours, dailyHours)
+  const overtimeHours = Math.max(0, totalHours - dailyHours)
 
   return {
     totalHours: Math.round(totalHours * 100) / 100,
@@ -129,14 +130,15 @@ export function calculateMultiSegmentPayment(
     return { totalBeforeVat: 0, totalWithVat: 0, bonusesTotal: 0, regularHours: 0, overtimeHours: 0 }
   }
 
-  const hours = calculateMultiSegmentHours(segments, mode)
+  const dailyHours = employer.dailyHours || 12
+  const hours = calculateMultiSegmentHours(segments, mode, dailyHours)
 
   let dailyPay = 0
 
   if (mode === 'separate') {
     // בחישוב נפרד: כל נקודה עם יומית משלה
     for (const segment of segments) {
-      const segmentHours = calculateHours(segment.startTime, segment.endTime)
+      const segmentHours = calculateHours(segment.startTime, segment.endTime, dailyHours)
       if (segmentHours.totalHours > 0) {
         // בודקים null וגם undefined
         const rate = (segment.customDailyRate != null && segment.customDailyRate > 0)
@@ -155,7 +157,7 @@ export function calculateMultiSegmentPayment(
       if (hasAnyCustomRate) {
         // יש לפחות נקודה אחת עם יומית מותאמת - סוכמים את כל היומיות
         for (const segment of segments) {
-          const segmentHours = calculateHours(segment.startTime, segment.endTime)
+          const segmentHours = calculateHours(segment.startTime, segment.endTime, dailyHours)
           if (segmentHours.totalHours > 0) {
             const rate = (segment.customDailyRate != null && segment.customDailyRate > 0)
               ? segment.customDailyRate

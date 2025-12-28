@@ -14,6 +14,7 @@ interface EmployersProps {
 const emptyEmployer: Omit<Employer, 'id'> = {
   name: '',
   dailyRate: 0,
+  dailyHours: 12,
   kmRate: 0,
   overtimeRate: 0,
   vatPercent: 17,
@@ -35,6 +36,7 @@ export function Employers({ employers, onSave, onDelete }: EmployersProps) {
     setFormData({
       name: employer.name,
       dailyRate: employer.dailyRate,
+      dailyHours: employer.dailyHours || 12,
       kmRate: employer.kmRate,
       overtimeRate: employer.overtimeRate,
       vatPercent: employer.vatPercent,
@@ -154,7 +156,7 @@ export function Employers({ employers, onSave, onDelete }: EmployersProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                מחיר יומית (עד 12 שעות)
+                מחיר יומית
               </label>
               <input
                 type="number"
@@ -164,6 +166,22 @@ export function Employers({ employers, onSave, onDelete }: EmployersProps) {
                 onChange={(e) => setFormData({ ...formData, dailyRate: Number(e.target.value) })}
                 className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                שעות ביומית
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="24"
+                step="0.5"
+                value={formData.dailyHours}
+                onChange={(e) => setFormData({ ...formData, dailyHours: Number(e.target.value) })}
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="12"
               />
             </div>
 
@@ -349,7 +367,7 @@ export function Employers({ employers, onSave, onDelete }: EmployersProps) {
               <h3 className="font-medium text-gray-900 dark:text-white text-lg mb-3">{employer.name}</h3>
               <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <p>
-                  <span className="text-gray-500 dark:text-gray-400">יומית:</span> {formatCurrency(employer.dailyRate)}
+                  <span className="text-gray-500 dark:text-gray-400">יומית:</span> {formatCurrency(employer.dailyRate)} ({employer.dailyHours || 12} שעות)
                 </p>
                 <p>
                   <span className="text-gray-500 dark:text-gray-400">שעה נוספת:</span> {formatCurrency(employer.overtimeRate)}
