@@ -196,7 +196,7 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
   try {
     // המתנה לטעינת התמונות
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 200))
 
     // יצירת canvas מהHTML
     const canvas = await html2canvas(container, {
@@ -204,10 +204,10 @@ export async function generatePDF(data: PDFData): Promise<void> {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
+      logging: false,
     })
 
     // יצירת PDF
-    const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -216,13 +216,53 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-    const imgX = (pdfWidth - imgWidth * ratio) / 2
-    const imgY = 0
 
-    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+    // חישוב רוחב התמונה כך שתתאים לרוחב הדף
+    const imgWidth = pdfWidth - 10 // שוליים של 5 מ"מ מכל צד
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+    // אם התמונה גבוהה מדף אחד, נחלק לעמודים
+    if (imgHeight <= pdfHeight - 10) {
+      // מתאים לדף אחד
+      const imgData = canvas.toDataURL('image/jpeg', 0.95)
+      pdf.addImage(imgData, 'JPEG', 5, 5, imgWidth, imgHeight)
+    } else {
+      // צריך מספר עמודים
+      const pageHeight = pdfHeight - 10 // גובה אפקטיבי לדף (עם שוליים)
+      const totalPages = Math.ceil(imgHeight / pageHeight)
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage()
+        }
+
+        // חישוב איזה חלק מהתמונה להציג
+        const sourceY = (page * pageHeight * canvas.width) / imgWidth
+        const sourceHeight = Math.min(
+          (pageHeight * canvas.width) / imgWidth,
+          canvas.height - sourceY
+        )
+
+        // יצירת canvas חלקי לעמוד הנוכחי
+        const pageCanvas = document.createElement('canvas')
+        pageCanvas.width = canvas.width
+        pageCanvas.height = sourceHeight
+        const ctx = pageCanvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0, sourceY,
+            canvas.width, sourceHeight,
+            0, 0,
+            canvas.width, sourceHeight
+          )
+
+          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95)
+          const pageImgHeight = (sourceHeight * imgWidth) / canvas.width
+          pdf.addImage(pageImgData, 'JPEG', 5, 5, imgWidth, pageImgHeight)
+        }
+      }
+    }
 
     // שמירה
     const fileName = employer
