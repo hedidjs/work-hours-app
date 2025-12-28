@@ -243,6 +243,12 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
   console.log('PDF: Starting generation with', workDays.length, 'work days')
 
+  // פתיחת חלון מיד (לפני פעולות אסינכרוניות) כדי שהדפדפן לא יחסום
+  const pdfWindow = window.open('', '_blank')
+  if (pdfWindow) {
+    pdfWindow.document.write('<html><head><title>מכין PDF...</title></head><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;direction:rtl;"><h2>מכין את הדוח, אנא המתן...</h2></body></html>')
+  }
+
   // חישוב מספר שורות לכל עמוד
   const ROWS_FIRST_PAGE = 12 // פחות שורות בעמוד הראשון בגלל הכותרת הגדולה
   const ROWS_OTHER_PAGES = 18 // יותר שורות בעמודים הבאים
@@ -390,34 +396,21 @@ export async function generatePDF(data: PDFData): Promise<void> {
 
   console.log('PDF: Saving file:', fileName)
 
-  // פתיחה בטאב חדש כ-data URL (עובד טוב יותר בדפדפנים מודרניים)
-  const pdfDataUri = pdf.output('datauristring')
+  // יצירת blob URL
+  const blob = pdf.output('blob')
+  const blobUrl = URL.createObjectURL(blob)
 
-  // יצירת חלון חדש עם ה-PDF
-  const pdfWindow = window.open('', '_blank')
+  // שימוש בחלון שנפתח בהתחלה
   if (pdfWindow) {
-    pdfWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${fileName}</title>
-          <style>
-            body { margin: 0; padding: 0; }
-            iframe { width: 100%; height: 100vh; border: none; }
-          </style>
-        </head>
-        <body>
-          <iframe src="${pdfDataUri}"></iframe>
-        </body>
-      </html>
-    `)
-    pdfWindow.document.close()
+    pdfWindow.location.href = blobUrl
   } else {
-    // אם נחסם פופאפ, ננסה הורדה ישירה
+    // אם החלון נחסם, ננסה הורדה ישירה
     const link = document.createElement('a')
-    link.href = pdfDataUri
+    link.href = blobUrl
     link.download = fileName
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
   }
 
   console.log('PDF: Generation completed')
